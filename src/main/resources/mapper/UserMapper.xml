@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace: 接口的全限定类名-->
+<mapper namespace="com.wuke.mapper.UserMapper">
+
+    <!--注意:在使用多表联合查询时  resultMap必须指定所有的属性-->
+    <resultMap id="BaseResultMap" type="com.wuke.entity.TUser">
+        <id property="id" column="id"/>
+        <result property="userName" column="user_name"/>
+        <result property="password" column="password"/>
+        <result property="phone" column="phone"/>
+        <result property="disabled" column="disabled"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <!--type:指定对应的对象类型-->
+    <!--extends:继承父类的resultMap-->
+    <resultMap id="manyToMany" type="com.wuke.entity.TUser" extends="BaseResultMap">
+        <!--  <collection>标签:  多对一 以及 多对多 时使用-->
+        <!--  property:          指定属性名称-->
+        <!--  resultMap:         引用指定位置的数据-->
+        <collection property="roles" resultMap="com.wuke.mapper.RoleMapper.BaseResultMap"/>
+    </resultMap>
+
+    <select id="selectPage2" resultMap="manyToMany">
+        SELECT tu.*,
+               tr.*
+        FROM t_user tu
+                 LEFT JOIN t_user_role tur ON tu.id = tur.uid
+                 LEFT JOIN t_role tr ON tur.rid = tr.id
+        <where>
+            <if test="username != null and username != ''">
+                tu.user_name LIKE CONCAT('%', #{username}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="findUserPage3" resultMap="manyToMany">
+        SELECT tu.*,
+               tr.*
+        FROM t_user tu
+                 LEFT JOIN t_user_role tur ON tu.id = tur.uid
+                 LEFT JOIN t_role tr ON tur.rid = tr.id
+            ${ew.customSqlSegment}
+    </select>
+
+</mapper>
